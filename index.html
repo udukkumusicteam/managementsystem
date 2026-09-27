@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Udukku Tutor Payment Receipt System</title>
+    <link rel="stylesheet" href="assets/fonts/fonts.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <script src="assets/vendor/jspdf.umd.min.js"></script>
+    <script src="assets/vendor/supabase.js"></script>
+</head>
+<body>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-chip">
+                <img src="assets/images/logo.png" alt="Udukku Music Education">
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Main</div>
+            <div class="nav-item active" data-page="dashboard">
+                <span class="nav-icon">📊</span>
+                Dashboard
+            </div>
+            <div class="nav-item" data-page="generate">
+                <span class="nav-icon">📄</span>
+                Generate Receipt
+            </div>
+            <div class="nav-item" data-page="payslips">
+                <span class="nav-icon">🗂️</span>
+                All Receipts
+            </div>
+            <div class="nav-item" data-page="approvals">
+                <span class="nav-icon">✍️</span>
+                Approvals
+            </div>
+            <div class="nav-item" data-page="quotations">
+                <span class="nav-icon">🧾</span>
+                Quotation
+            </div>
+
+            <div class="nav-section-label">Management</div>
+            <div class="nav-item" data-page="tutors">
+                <span class="nav-icon">👩‍🏫</span>
+                Tutors
+            </div>
+            <div class="nav-item" data-page="settings">
+                <span class="nav-icon">⚙️</span>
+                Settings
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="admin-badge" id="sidebar-user"></div>
+        </div>
+    </aside>
+    <!-- MOBILE SIDEBAR BACKDROP -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <!-- TOPBAR -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <button class="menu-toggle" id="btn-menu-toggle" aria-label="Open menu" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                        <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+                    </svg>
+                </button>
+                <div class="topbar-titles">
+                    <h2 id="topbar-title">Dashboard</h2>
+                    <p id="topbar-subtitle">Welcome back, Ishita</p>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <button class="btn btn-primary" id="btn-new-payslip">
+                    ✨ Generate New Receipt
+                </button>
+            </div>
+        </div>
+
+        <!-- PAGES CONTAINER -->
+        <div id="pages-container">
+            <!-- Dashboard Page -->
+            <div class="page active" id="page-dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👩‍🏫</div>
+                        <div class="stat-value" id="stat-total-tutors">0</div>
+                        <div class="stat-label">Total Tutors</div>
+                        <div class="stat-change">↑ Active this month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📄</div>
+                        <div class="stat-value" id="stat-month-payslips">0</div>
+                        <div class="stat-label">Receipts This Month</div>
+                        <div class="stat-change" id="stat-month-name">—</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-value" id="stat-total-paid">₹0</div>
+                        <div class="stat-label">Total Paid This Month</div>
+                        <div class="stat-change">All receipts combined</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📋</div>
+                        <div class="stat-value" id="stat-total-payslips">0</div>
+                        <div class="stat-label">All Time Receipts</div>
+                        <div class="stat-change">Across all tutors</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Recent Receipts</h3>
+                            <button class="btn btn-ghost btn-sm" id="btn-view-all-payslips">View All</button>
+                        </div>
+                        <div class="card-body" id="recent-payslips-list"></div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Quick Actions</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="quick-actions" id="quick-actions"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generate Payment Receipt Page -->
+            <div class="page" id="page-generate">
+                <div class="page-header">
+                    <div>
+                        <h2>Generate Payment Receipt</h2>
+                        <p>Fill in the details below to generate a professional tutor payment receipt</p>
+                    </div>
+                </div>
+
+                <div class="generate-layout" id="generate-layout">
+                    <!-- FORM -->
+                    <div class="form-section">
+                        <div class="form-section-header">
+                            <h3>📄 Payment Receipt Details</h3>
+                            <p>All calculations are performed automatically</p>
+                        </div>
+                        <div class="form-section-body" id="generate-form-body"></div>
+                    </div>
+
+                    <!-- LIVE PREVIEW -->
+                    <div class="preview-card" id="live-preview"></div>
+                </div>
+
+                <!-- SUCCESS PAGE -->
+                <div class="success-page" id="generate-success">
+                    <div class="success-icon">✅</div>
+                    <h2>Payment Receipt Generated!</h2>
+                    <p id="success-message">The payment receipt has been generated and saved successfully.</p>
+                    <div class="success-actions" id="success-actions"></div>
+                </div>
+            </div>
+
+            <!-- Payment Receipts Page -->
+            <div class="page" id="page-payslips">
+                <div class="page-header">
+                    <div>
+                        <h2>All Payment Receipts</h2>
+                        <p>Search, view and manage all generated payment receipts</p>
+                    </div>
+                </div>
+
+                <div class="search-bar">
+                    <div class="search-input-wrap" style="flex:1">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" class="form-control" id="payslip-search" placeholder="Search by tutor name, subject or month...">
+                    </div>
+                </div>
+
+                <div class="filter-row" id="payslip-filters"></div>
+
+                <div class="payslips-table">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Tutor</th>
+                                <th>Subject</th>
+                                <th>Pay Period</th>
+                                <th>Teaching Sessions</th>
+                                <th>Strike Sessions</th>
+                                <th>Grand Total</th>
+                                <th>Status</th>
+                                <th>Generated On</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payslips-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Quotation Page -->
+            <div class="page" id="page-quotations">
+                <div class="page-header">
+                    <div>
+                        <h2>Quotations</h2>
+                        <p>Build a client quotation with live pricing — every value is editable</p>
+                    </div>
+                    <button class="btn btn-primary" id="btn-new-quotation">
+                        ✨ New Quotation
+                    </button>
+                </div>
+
+                <div class="generate-layout" id="quote-layout">
+                    <div class="form-section">
+                        <div class="form-section-header">
+                            <h3>🧾 Quotation Details</h3>
+                            <p>Change any field — everything recalculates automatically</p>
+                        </div>
+                        <div class="form-section-body" id="quote-form-body"></div>
+                    </div>
+                    <div class="preview-card" id="quote-preview"></div>
+                </div>
+
+                <!-- SUCCESS PAGE -->
+                <div class="success-page" id="quote-success">
+                    <div class="success-icon">🧾</div>
+                    <h2>Quotation Ready!</h2>
+                    <p id="quote-success-message"></p>
+                    <div class="success-actions" id="quote-success-actions"></div>
+                </div>
+
+                <!-- HISTORY -->
+                <div class="card" style="margin-top:28px">
+                    <div class="card-header">
+                        <h3>Saved Quotations</h3>
+                    </div>
+                    <div class="card-body" id="quotations-history"></div>
+                </div>
+            </div>
+
+            <!-- Approvals Page -->
+            <div class="page" id="page-approvals">
+                <div class="page-header">
+                    <div>
+                        <h2>Payment Receipt Approvals</h2>
+                        <p>Every payment receipt waits here for a signature before it's released</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>✍️ Signature</h3>
+                        <span class="card-hint">Set once — then approving any payslip is a single click</span>
+                    </div>
+                    <div class="card-body" id="signature-body"></div>
+                </div>
+
+                <div class="card" style="margin-top:20px">
+                    <div class="card-header">
+                        <h3>⏳ Waiting for approval</h3>
+                    </div>
+                    <div class="card-body" id="pending-list"></div>
+                </div>
+
+                <div class="card" style="margin-top:20px">
+                    <div class="card-header">
+                        <h3>✅ Approved &amp; signed</h3>
+                    </div>
+                    <div class="card-body" id="approved-list"></div>
+                </div>
+            </div>
+
+            <!-- Tutors Page -->
+            <div class="page" id="page-tutors">
+                <div class="page-header">
+                    <div>
+                        <h2>Tutor Management</h2>
+                        <p>Manage tutor profiles, subjects and compensation rates</p>
+                    </div>
+                    <button class="btn btn-primary" id="btn-add-tutor">
+                        ➕ Add Tutor
+                    </button>
+                </div>
+
+                <div class="tutors-grid" id="tutors-grid"></div>
+            </div>
+
+            <!-- SETTINGS PAGE -->
+            <div class="page" id="page-settings">
+                <div class="page-header">
+                    <div>
+                        <h2>Settings</h2>
+                        <p>Shared database, team access and data</p>
+                    </div>
+                </div>
+                <div id="settings-body"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- AUTH GATE (cloud mode, before sign-in) -->
+    <div class="auth-gate" id="auth-gate" style="display:none">
+        <div class="auth-card">
+            <div class="logo-chip" style="max-width:220px; margin:0 auto 20px">
+                <img src="assets/images/logo.png" alt="Udukku Music Education">
+            </div>
+            <h3>Udukku Team Access</h3>
+            <p>Sign in with your invited work email and password. If you haven't been invited yet, ask Ishita.</p>
+            <div class="form-group" style="margin-top:18px">
+                <input type="email" class="form-control" id="auth-email" placeholder="you@udukku.com" style="text-align:center" autocomplete="email">
+            </div>
+            <div class="form-group" style="margin-top:10px">
+                <input type="password" class="form-control" id="auth-password" placeholder="Password" style="text-align:center" autocomplete="current-password">
+            </div>
+            <button class="btn btn-primary btn-lg" id="btn-sign-in" style="width:100%">🔓 Sign in</button>
+            <button class="btn btn-ghost" id="btn-magic-link" style="width:100%; margin-top:10px; font-size:13px">
+                ✉️ Forgot password? Send me a magic link
+            </button>
+            <button class="btn btn-ghost" id="btn-local-mode" style="width:100%; margin-top:6px; font-size:13px; color:var(--brown-light)">
+                💾 Not now — use locally on this device
+            </button>
+            <p id="auth-status" class="form-hint" style="margin-top:12px; text-align:center; min-height:16px"></p>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div class="modal-overlay" id="tutor-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="tutor-modal-title">Add New Tutor</h3>
+                <button class="modal-close" id="close-tutor-modal">✕</button>
+            </div>
+            <div class="modal-body" id="tutor-modal-body"></div>
+            <div class="modal-footer" id="tutor-modal-footer"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="delete-modal">
+        <div class="modal" style="max-width:440px">
+            <div class="modal-header">
+                <h3>Confirm Delete</h3>
+                <button class="modal-close" id="close-delete-modal">✕</button>
+            </div>
+            <div class="modal-body">
+                <p id="delete-confirm-text" style="font-size:14px; color:var(--brown-light); line-height:1.6"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" id="cancel-delete">Cancel</button>
+                <button class="btn btn-danger" id="confirm-delete">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Load all JS modules -->
+    <script type="module" src="assets/js/main.js"></script>
+</body>
+</html>

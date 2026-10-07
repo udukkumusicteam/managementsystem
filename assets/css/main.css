@@ -274,7 +274,7 @@ body {
     z-index: 200;
 }
 
-.topbar-left h1 {
+.topbar-left h2 {
     color: var(--vivid-brown);
 }
 
@@ -1793,4 +1793,56 @@ table.data-table tr:hover td {
     .dashboard-grid { grid-template-columns: 1fr; }
     .menu-toggle { display: inline-flex; }
     .topbar { padding: 12px 16px; }
+}
+
+
+/* ═══ Website Submissions page (added 3 Oct 2026) ═══ */
+.ws-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+.ws-stat {
+    background: var(--white);
+    border: 1px solid var(--cream-dark);
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+}
+.ws-stat-num {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--dark-azure);
+    line-height: 1.1;
+}
+.ws-stat-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--brown-light);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.ws-detail {
+    margin-bottom: 18px;
+    border-left: 4px solid var(--vivid-brown);
+}
+.ws-detail-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px 32px;
+    font-size: 14px;
+}
+.ws-detail-grid .meta-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--brown-light);
+    margin-bottom: 2px;
+}
+@media (max-width: 640px) {
+    .ws-stats { grid-template-columns: repeat(2, 1fr); }
 }

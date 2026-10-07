@@ -53,6 +53,7 @@ export const Dashboard = {
             payslips: ['All Receipts', 'View and manage all generated payment receipts'],
             approvals: ['Receipt Approvals', 'Sign and release payment receipts'],
             quotations: ['Quotations', 'Create client quotations with live pricing'],
+            website: ['Website Submissions', 'Enquiries from udukkumusic.com'],
             tutors: ['Tutor Management', 'Manage tutor profiles and rates'],
             settings: ['Settings', 'Shared database, team access and data']
         };
@@ -68,6 +69,8 @@ export const Dashboard = {
             import('./approvals.js').then(module => module.Approvals.init());
         } else if (page === 'quotations') {
             import('./quotations.js').then(module => module.Quotations.init());
+        } else if (page === 'website') {
+            import('./websiteSubmissions.js').then(module => module.WebsiteSubmissions.init());
         } else if (page === 'tutors') {
             import('./tutors.js').then(module => module.Tutors.init());
         } else if (page === 'settings') {
@@ -91,11 +94,51 @@ export const Dashboard = {
         const stats = Store.getStats();
         const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
+        // "This Month" = receipts GENERATED in the current calendar month
+        // (not their pay period — so September receipts created in October
+        //  count under October, matching what the user did "this month").
+        const now = new Date();
+        const cm = now.getMonth();
+        const cy = now.getFullYear();
+        const thisMonth = Store.getPayslips().filter(p => {
+            const d = new Date(p.createdAt);
+            return d.getMonth() === cm && d.getFullYear() === cy;
+        });
+
+        // Multi-currency: never add different currencies into one number.
+        // Headline = INR total; other currencies itemised on the sub-line.
+        const byCur = {};
+        thisMonth.forEach(p => {
+            const c = p.currency || 'INR';
+            byCur[c] = (byCur[c] || 0) + Number(p.grandTotal || 0);
+        });
+        const inr = byCur.INR || 0;
+        const others = Object.keys(byCur).filter(c => c !== 'INR');
+
         document.getElementById('stat-total-tutors').textContent = stats.totalTutors;
-        document.getElementById('stat-month-payslips').textContent = stats.monthPayslips;
-        document.getElementById('stat-total-paid').textContent = Formatters.currency(stats.totalPaidThisMonth);
+        document.getElementById('stat-month-payslips').textContent = thisMonth.length;
         document.getElementById('stat-total-payslips').textContent = stats.totalPayslips;
-        document.getElementById('stat-month-name').textContent = `${monthNames[stats.currentMonth]} ${stats.currentYear}`;
+        document.getElementById('stat-month-name').textContent = `${monthNames[cm]} ${cy}`;
+
+        const paidEl = document.getElementById('stat-total-paid');
+        paidEl.textContent = inr > 0
+            ? Formatters.currency(inr)
+            : (others.length
+                ? Formatters.money(byCur[others[0]], others[0])
+                : '₹0');
+
+        const detailEl = paidEl.closest('.stat-card')?.querySelector('.stat-change');
+        if (detailEl) {
+            if (inr > 0 && others.length) {
+                detailEl.textContent = 'incl. ' + others
+                    .map(c => `${Formatters.money(byCur[c], c)} ${c}`)
+                    .join(' · ');
+            } else if (inr === 0 && others.length) {
+                detailEl.textContent = 'No INR receipts this month';
+            } else {
+                detailEl.textContent = 'All receipts combined';
+            }
+        }
     },
 
     renderRecentPayslips() {
@@ -131,7 +174,7 @@ export const Dashboard = {
                     </div>
                 </div>
                 <div class="payslip-row-right">
-                    <div class="amount">${Formatters.currency(p.grandTotal)}</div>
+                    <div class="amount">${Formatters.money(p.grandTotal, p.currency)}</div>
                     <div class="date">${Formatters.date(p.createdAt)}</div>
                 </div>
             </div>
@@ -160,6 +203,7 @@ export const Dashboard = {
             { icon: '✨', title: 'Generate Receipt', description: 'Create a new tutor payment receipt', page: 'generate' },
             { icon: '✍️', title: 'Approve Receipts', description: pendingCount > 0 ? `${pendingCount} waiting for signature` : 'Sign and release payment receipts', page: 'approvals' },
             { icon: '🧾', title: 'Create Quotation', description: 'Build a client quotation with live pricing', page: 'quotations' },
+            { icon: '🌐', title: 'Website Submissions', description: 'Enquiries from udukkumusic.com', page: 'website' },
             { icon: '➕', title: 'Add Tutor', description: 'Register a new tutor profile', action: 'add-tutor' },
             { icon: '🗂️', title: 'View All Receipts', description: 'Search and manage payment receipts', page: 'payslips' },
             { icon: '👩‍🏫', title: 'Manage Tutors', description: 'Edit tutor profiles and rates', page: 'tutors' }

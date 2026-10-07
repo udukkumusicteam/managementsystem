@@ -56,6 +56,14 @@ export const Generate = {
                 <p class="form-hint">Only subjects taught by the selected tutor are shown. Each subject generates a separate payment receipt.</p>
             </div>
 
+            <div class="form-group">
+                <label class="form-label">Currency</label>
+                <select class="form-control" id="gen-currency">
+                    ${Formatters.currencyOptionsHTML()}
+                </select>
+                <p class="form-hint">All amounts, the live preview and the receipt PDF are shown in this currency.</p>
+            </div>
+
             <div class="form-group" id="gen-rate-group" style="display:none">
                 <label class="form-label">Session Compensation Rate</label>
                 <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
@@ -189,6 +197,7 @@ export const Generate = {
         document.getElementById('gen-tutor')?.addEventListener('change', () => this.onTutorChange());
         document.getElementById('gen-subject')?.addEventListener('change', () => this.onSubjectChange());
         document.getElementById('gen-rate')?.addEventListener('input', () => this.updatePreview());
+        document.getElementById('gen-currency')?.addEventListener('change', () => this.updatePreview());
         document.getElementById('gen-teaching-hours')?.addEventListener('input', () => this.updatePreview());
         document.getElementById('gen-strike-hours')?.addEventListener('input', () => this.updatePreview());
         document.getElementById('btn-generate-payslip')?.addEventListener('click', () => this.generatePayslip());
@@ -290,7 +299,8 @@ export const Generate = {
         if (subject) {
             document.getElementById('gen-rate-group').style.display = 'block';
             document.getElementById('gen-rate').value = subject.rate;
-            document.getElementById('gen-rate-display').textContent = `₹${subject.rate}/session`;
+            const cur = document.getElementById('gen-currency')?.value || 'INR';
+            document.getElementById('gen-rate-display').textContent = Formatters.money(subject.rate, cur) + '/session';
         }
 
         this.updatePreview();
@@ -305,6 +315,7 @@ export const Generate = {
         const rate = parseFloat(document.getElementById('gen-rate')?.value) || 0;
         const teachHours = parseFloat(document.getElementById('gen-teaching-hours')?.value) || 0;
         const strikeHours = parseFloat(document.getElementById('gen-strike-hours')?.value) || 0;
+        const currency = document.getElementById('gen-currency')?.value || 'INR';
 
         const { teachingAmount, strikeAmount, grandTotal } = PayslipService.calculateAmounts(
             teachHours, strikeHours, rate
@@ -315,23 +326,23 @@ export const Generate = {
 
         document.getElementById('prev-name').textContent = tutor ? tutor.name : '—';
         document.getElementById('prev-position').textContent = subject ? `${subject.name} Tutor` : '—';
-        document.getElementById('prev-rate').textContent = rate ? `₹${rate}/session` : '—';
+        document.getElementById('prev-rate').textContent = rate ? Formatters.money(rate, currency) + '/session' : '—';
         document.getElementById('prev-period').textContent = (month !== '' && year) ?
             Formatters.period(parseInt(month), parseInt(year)) : '—';
 
         document.getElementById('prev-t-hours').textContent = teachHours;
-        document.getElementById('prev-t-rate').textContent = `₹${rate}`;
-        document.getElementById('prev-t-amount').textContent = Formatters.currency(teachingAmount);
+        document.getElementById('prev-t-rate').textContent = Formatters.money(rate, currency);
+        document.getElementById('prev-t-amount').textContent = Formatters.money(teachingAmount, currency);
 
         document.getElementById('prev-s-hours').textContent = strikeHours;
-        document.getElementById('prev-s-rate').textContent = `₹${rate}`;
-        document.getElementById('prev-s-amount').textContent = Formatters.currency(strikeAmount);
+        document.getElementById('prev-s-rate').textContent = Formatters.money(rate, currency);
+        document.getElementById('prev-s-amount').textContent = Formatters.money(strikeAmount, currency);
 
-        document.getElementById('calc-formula-t').textContent = `${teachHours} sessions × ₹${rate}/session`;
-        document.getElementById('calc-formula-s').textContent = `${strikeHours} sessions × ₹${rate}/session`;
-        document.getElementById('calc-t-amount').textContent = Formatters.currency(teachingAmount);
-        document.getElementById('calc-s-amount').textContent = Formatters.currency(strikeAmount);
-        document.getElementById('prev-grand-total').textContent = Formatters.currency(grandTotal);
+        document.getElementById('calc-formula-t').textContent = `${teachHours} sessions × ${Formatters.money(rate, currency)}/session`;
+        document.getElementById('calc-formula-s').textContent = `${strikeHours} sessions × ${Formatters.money(rate, currency)}/session`;
+        document.getElementById('calc-t-amount').textContent = Formatters.money(teachingAmount, currency);
+        document.getElementById('calc-s-amount').textContent = Formatters.money(strikeAmount, currency);
+        document.getElementById('prev-grand-total').textContent = Formatters.money(grandTotal, currency);
 
         this.checkDuplicate();
     },
@@ -376,6 +387,8 @@ export const Generate = {
         if (!rate || rate <= 0) { UI.showToast('Please enter a valid hourly rate', 'error'); return; }
         if (isNaN(teachHours) || teachHours < 0) { UI.showToast('Please enter valid teaching hours', 'error'); return; }
 
+        const currency = document.getElementById('gen-currency')?.value || 'INR';
+
         const payslip = PayslipService.createPayslip({
             tutorId,
             subjectId: subjId,
@@ -383,7 +396,8 @@ export const Generate = {
             year: parseInt(year),
             rate,
             teachingHours: teachHours,
-            strikeHours
+            strikeHours,
+            currency
         });
 
         if (!payslip) {
@@ -443,6 +457,7 @@ export const Generate = {
         document.getElementById('gen-tutor').value = '';
         document.getElementById('gen-subject').innerHTML = '<option value="">Select Subject</option>';
         document.getElementById('gen-rate').value = '';
+        document.getElementById('gen-currency').value = 'INR';
         document.getElementById('gen-teaching-hours').value = '';
         document.getElementById('gen-strike-hours').value = '';
         document.getElementById('gen-rate-group').style.display = 'none';
@@ -489,6 +504,7 @@ export const Generate = {
         setTimeout(() => {
             document.getElementById('gen-subject').value = payslip.subjectId;
             document.getElementById('gen-rate').value = payslip.rate;
+            document.getElementById('gen-currency').value = payslip.currency || 'INR';
             document.getElementById('gen-teaching-hours').value = payslip.teachingHours;
             document.getElementById('gen-strike-hours').value = payslip.strikeHours;
             document.getElementById('gen-month').value = payslip.month;

@@ -7,9 +7,10 @@ import { Store } from '../state/store.js';
  * Pricing rules (from requirement messages, 1 Aug 2026; GST rule corrected 10 Sep 2026):
  *  - Base rate per tutor + subject, quoted excluding GST
  *  - Packages: higher package → higher discount (defaults 6h/2%, 10h/4%, 20h/8%)
- *  - GST (user-confirmed 10 Sep 2026): client from Rajasthan → IGST 18%;
- *    any other state → CGST 9% + SGST 9%. (Supersedes the 1 Aug note, which
- *    had the two cases reversed.)
+ *  - GST (user-corrected 3 Oct 2026): Udukku is Rajasthan-based, so a
+ *    Rajasthan client → intra-state → CGST 9% + SGST 9%; a client from any
+ *    other state → inter-state → IGST 18%. (Supersedes the 10 Sep rule,
+ *    which had the two cases reversed.)
  * All inputs are editable; every downstream value is derived live.
  */
 export const QuotationService = {
@@ -25,11 +26,11 @@ export const QuotationService = {
         return { cgst: 9, sgst: 9, igst: 18 };
     },
 
-    /** GST mode from the client's state (Rajasthan → inter-state IGST, anything else → CGST + SGST). */
+    /** GST mode from the client's state (Rajasthan → intra-state CGST+SGST, anything else → inter-state IGST). */
     gstModeForState(stateName, fallback = 'intra') {
         const s = (stateName || '').trim().toLowerCase();
         if (!s) return fallback;
-        return s.includes('rajasthan') ? 'inter' : 'intra';
+        return s.includes('rajasthan') ? 'intra' : 'inter';
     },
 
     round2(n) {
@@ -116,6 +117,7 @@ export const QuotationService = {
             subjectId: data.subjectId,
             subject: data.subject,
             baseRate: data.baseRate,
+            currency: data.currency || 'INR',
             packages: data.packages,
             gstMode: data.gstMode,
             gstRates: data.gstRates,
@@ -139,6 +141,7 @@ export const QuotationService = {
             subjectId: data.subjectId,
             subject: data.subject,
             baseRate: data.baseRate,
+            currency: data.currency || 'INR',
             packages: data.packages,
             gstMode: data.gstMode,
             gstRates: data.gstRates,

@@ -40,6 +40,10 @@
                 <span class="nav-icon">🧾</span>
                 Quotation
             </div>
+            <div class="nav-item" data-page="website">
+                <span class="nav-icon">🌐</span>
+                Website Submissions
+            </div>
 
             <div class="nav-section-label">Management</div>
             <div class="nav-item" data-page="tutors">
@@ -239,6 +243,28 @@
                         <h3>Saved Quotations</h3>
                     </div>
                     <div class="card-body" id="quotations-history"></div>
+                </div>
+            </div>
+
+            <!-- Website Submissions Page -->
+            <div class="page" id="page-website">
+                <div class="page-header">
+                    <div>
+                        <h2>Website Submissions</h2>
+                        <p>Enquiries sent from udukkumusic.com land here — open them and track them</p>
+                    </div>
+                </div>
+
+                <div id="ws-summary"></div>
+
+                <div class="card" style="margin-top:20px">
+                    <div class="card-header">
+                        <h3>Latest Enquiries</h3>
+                        <button class="btn btn-ghost btn-sm" id="btn-ws-refresh">🔄 Refresh</button>
+                    </div>
+                    <div class="card-body" id="ws-body">
+                        <div class="empty-state"><p>Loading…</p></div>
+                    </div>
                 </div>
             </div>
 

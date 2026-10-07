@@ -59,6 +59,21 @@ export const Quotations = {
         this.renderPreview();
     },
 
+    // Fill the client fields from a website submission (Website Submissions
+    // page → "Start Quotation"). Called right after startNew().
+    prefillClient(sub) {
+        const set = (id, v) => {
+            const el = document.getElementById(id);
+            if (el) el.value = v || '';
+        };
+        set('q-client-name', sub.name);
+        set('q-client-phone', sub.phone);
+        set('q-client-email', sub.email);
+        set('q-client-city', sub.city);
+        set('q-client-state', sub.state);
+        this.renderPreview();
+    },
+
     getFormHTML() {
         return `
             <div class="section-title">Client</div>
@@ -95,7 +110,7 @@ export const Quotations = {
                     <option value="">Select Tutor</option>
                 </select>
             </div>
-            <div class="form-row">
+            <div class="form-row-3">
                 <div class="form-group">
                     <label class="form-label">Subject / Instrument</label>
                     <select class="form-control" id="q-subject">
@@ -103,8 +118,14 @@ export const Quotations = {
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Base Rate (₹/hr, excl. GST) *</label>
+                    <label class="form-label">Base Rate (per hr, excl. GST) *</label>
                     <input type="number" class="form-control" id="q-base-rate" placeholder="e.g. 650" min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Currency</label>
+                    <select class="form-control" id="q-currency">
+                        ${Formatters.currencyOptionsHTML()}
+                    </select>
                 </div>
             </div>
             <p class="form-hint">Base rate auto-fills from the subject profile — edit freely, every total updates.</p>
@@ -118,13 +139,13 @@ export const Quotations = {
             <div class="form-section-divider"></div>
             <div class="section-title">GST</div>
             <div class="gst-modes" id="q-gst-modes">
-                <button type="button" class="gst-mode" data-mode="inter">
-                    <strong>Rajasthan client</strong>
-                    <span>IGST (inter-state)</span>
-                </button>
                 <button type="button" class="gst-mode" data-mode="intra">
-                    <strong>Other state</strong>
+                    <strong>Rajasthan client</strong>
                     <span>CGST + SGST (intra-state)</span>
+                </button>
+                <button type="button" class="gst-mode" data-mode="inter">
+                    <strong>Other state</strong>
+                    <span>IGST (inter-state)</span>
                 </button>
             </div>
             <div class="form-row-3">
@@ -253,6 +274,7 @@ export const Quotations = {
         document.getElementById('q-tutor')?.addEventListener('change', () => this.onTutorChange());
         document.getElementById('q-subject')?.addEventListener('change', () => this.onSubjectChange());
         document.getElementById('q-base-rate')?.addEventListener('input', () => this.renderPreview());
+        document.getElementById('q-currency')?.addEventListener('change', () => this.renderPreview());
 
         // Delegated: covers package rows added later too
         document.getElementById('q-packages')?.addEventListener('input', (e) => {
@@ -304,6 +326,7 @@ export const Quotations = {
             subjectId: subjId,
             subject: subject?.name || '',
             baseRate: val('q-base-rate'),
+            currency: val('q-currency') || 'INR',
             packages: Array.from(document.getElementById('q-packages')?.querySelectorAll('.pkg-row') || []).map(row => ({
                 hours: row.querySelector('.pkg-hours')?.value ?? '',
                 discountPct: row.querySelector('.pkg-disc')?.value ?? ''
@@ -326,6 +349,7 @@ export const Quotations = {
         if (!container) return;
 
         const data = this.readForm();
+        const cur = data.currency || 'INR';
         const calc = QuotationService.calculateAll({
             baseRate: data.baseRate,
             gstMode: data.gstMode,
@@ -339,9 +363,9 @@ export const Quotations = {
             const c = calc[i];
             if (!c) return;
             row.querySelector('.pkg-calc-rate').textContent =
-                c.discountedRate ? `Rs. ${c.discountedRate}/hr` : '—';
+                c.discountedRate ? Formatters.money(c.discountedRate, cur) + '/hr' : '—';
             row.querySelector('.pkg-calc-total').textContent =
-                c.subtotal ? QuotationService.money(c.subtotal) : '—';
+                c.subtotal ? Formatters.money(c.subtotal, cur) : '—';
         });
 
         const num = this.editingId
@@ -397,7 +421,7 @@ export const Quotations = {
                 <div class="q-prev-block">
                     <div class="q-prev-tutor">Tutor: ${this.esc(data.tutorName) || '—'}</div>
                     <div class="q-prev-tutor">Course: ${this.esc(data.subject) || '—'}</div>
-                    <div class="q-prev-line">Base rate: ${data.baseRate ? '₹' + data.baseRate : '—'}/hr (excl. GST)</div>
+                    <div class="q-prev-line">Base rate: ${data.baseRate ? Formatters.money(data.baseRate, cur) : '—'}/hr (excl. GST)</div>
                     <div class="q-prev-line">GST: ${this.esc(gst)}</div>
                 </div>
             </div>
@@ -410,10 +434,10 @@ export const Quotations = {
                         <tr>
                             <td>${c.hours || '?'} hrs</td>
                             <td>${this.esc(c.discountPct)}%</td>
-                            <td>${c.discountedRate ? 'Rs. ' + c.discountedRate : '—'}</td>
-                            <td class="q-subt">${c.subtotal ? QuotationService.money(c.subtotal) : '—'}</td>
-                            <td>${QuotationService.money(c.gstTotal)}</td>
-                            <td class="q-total">${QuotationService.money(c.total)}</td>
+                            <td>${c.discountedRate ? Formatters.money(c.discountedRate, cur) : '—'}</td>
+                            <td class="q-subt">${c.subtotal ? Formatters.money(c.subtotal, cur) : '—'}</td>
+                            <td>${Formatters.money(c.gstTotal, cur)}</td>
+                            <td class="q-total">${Formatters.money(c.total, cur)}</td>
                         </tr>`).join('')}
                 </tbody>
             </table>
@@ -528,6 +552,7 @@ export const Quotations = {
             document.getElementById('q-subject').value = q.subjectId;
             this.onSubjectChange();
             set('q-base-rate', q.baseRate);
+            set('q-currency', q.currency || 'INR');
         }, 0);
 
         const container = document.getElementById('q-packages');

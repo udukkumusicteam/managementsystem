@@ -335,6 +335,8 @@ export const Cloud = {
             import('../components/approvals.js').then(m => m.Approvals.init());
         } else if (active === 'page-quotations') {
             import('../components/quotations.js').then(m => m.Quotations.init());
+        } else if (active === 'page-website') {
+            import('../components/websiteSubmissions.js').then(m => m.WebsiteSubmissions.init());
         } else if (active === 'page-tutors') {
             import('../components/tutors.js').then(m => m.Tutors.init());
         }

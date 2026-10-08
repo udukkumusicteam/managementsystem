@@ -205,7 +205,7 @@ export const WebsiteSubmissions = {
                             <td>
                                 <div class="table-actions">
                                     <button class="icon-btn" title="Open" data-action="open" data-id="${r.id}">👁️</button>
-                                    <button class="icon-btn" title="Start quotation" data-action="quote" data-id="${r.id}">🧾</button>
+                                    <button class="icon-btn" title="Start pricing estimate" data-action="quote" data-id="${r.id}">🧾</button>
                                 </div>
                             </td>
                         </tr>`;
@@ -285,7 +285,7 @@ export const WebsiteSubmissions = {
                 <h3>📨 ${this.esc(r[cfg.nameKey] || 'Enquiry')} ${this._statusBadge(r.status)}</h3>
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
                     ${cfg.hasStatus ? `<button class="btn btn-primary btn-sm" id="ws-mark-btn" data-id="${r.id}" data-next="${markBtn.next}">${markBtn.label}</button>` : ''}
-                    <button class="btn btn-secondary btn-sm" id="ws-quote-btn" data-id="${r.id}">🧾 Start Quotation</button>
+                    <button class="btn btn-secondary btn-sm" id="ws-quote-btn" data-id="${r.id}">🧾 Start Pricing Estimate</button>
                 </div>
             </div>
             <div class="card-body">
@@ -326,7 +326,7 @@ export const WebsiteSubmissions = {
             const { Quotations } = await import('./quotations.js');
             Quotations.startNew();
             Quotations.prefillClient(sub);
-            UI.showToast(`Quotation form filled for ${sub.name || 'the new client'} 🧾`, 'success');
+            UI.showToast(`Pricing estimate form filled for ${sub.name || 'the new client'} 🧾`, 'success');
         }, 250);
     }
 };

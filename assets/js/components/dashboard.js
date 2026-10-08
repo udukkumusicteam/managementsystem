@@ -52,7 +52,7 @@ export const Dashboard = {
             generate: ['Generate Receipt', 'Create a new tutor payment receipt'],
             payslips: ['All Receipts', 'View and manage all generated payment receipts'],
             approvals: ['Receipt Approvals', 'Sign and release payment receipts'],
-            quotations: ['Quotations', 'Create client quotations with live pricing'],
+            quotations: ['Pricing Estimates', 'Create client pricing estimates with live pricing'],
             website: ['Website Submissions', 'Enquiries from udukkumusic.com'],
             tutors: ['Tutor Management', 'Manage tutor profiles and rates'],
             settings: ['Settings', 'Shared database, team access and data']
@@ -202,7 +202,7 @@ export const Dashboard = {
         const actions = [
             { icon: '✨', title: 'Generate Receipt', description: 'Create a new tutor payment receipt', page: 'generate' },
             { icon: '✍️', title: 'Approve Receipts', description: pendingCount > 0 ? `${pendingCount} waiting for signature` : 'Sign and release payment receipts', page: 'approvals' },
-            { icon: '🧾', title: 'Create Quotation', description: 'Build a client quotation with live pricing', page: 'quotations' },
+            { icon: '🧾', title: 'Create Pricing Estimate', description: 'Build a client pricing estimate with live pricing', page: 'quotations' },
             { icon: '🌐', title: 'Website Submissions', description: 'Enquiries from udukkumusic.com', page: 'website' },
             { icon: '➕', title: 'Add Tutor', description: 'Register a new tutor profile', action: 'add-tutor' },
             { icon: '🗂️', title: 'View All Receipts', description: 'Search and manage payment receipts', page: 'payslips' },

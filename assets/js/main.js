@@ -30,14 +30,62 @@ const App = {
         if (tg) tg.setAttribute('aria-expanded', 'false');
     },
 
+    // Desktop: collapse / expand the sidebar to an icon rail (chevron handle on the sidebar's edge)
+    toggleDesktopSidebar() {
+        const collapsed = document.body.classList.toggle('sidebar-collapsed');
+        try {
+            localStorage.setItem('udukku_sidebar_collapsed', collapsed ? '1' : '0');
+        } catch { /* ignore */ }
+        App.updateHandleLabel();
+    },
+
+    // Keep the handle's tooltip in sync with the state
+    updateHandleLabel() {
+        const h = document.getElementById('sidebar-collapse-handle');
+        if (!h) return;
+        const collapsed = document.body.classList.contains('sidebar-collapsed');
+        h.title = collapsed ? 'Expand menu' : 'Collapse menu';
+        h.setAttribute('aria-label', h.title);
+        h.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    },
+
     initMobileNav() {
         const toggle = document.getElementById('btn-menu-toggle');
         const backdrop = document.getElementById('sidebar-backdrop');
+        const sb = document.querySelector('.sidebar');
+
+        // Desktop chevron handle on the sidebar's right edge (added via JS — no HTML changes).
+        // A small round button riding the edge of the panel: ‹ collapse, › expand.
+        if (sb && !document.getElementById('sidebar-collapse-handle')) {
+            const handle = document.createElement('button');
+            handle.className = 'sidebar-collapse-handle';
+            handle.id = 'sidebar-collapse-handle';
+            handle.type = 'button';
+            handle.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
+            handle.addEventListener('click', () => App.toggleDesktopSidebar());
+            sb.appendChild(handle);
+        }
+
+        // Desktop rail: give each nav item a tooltip (shows when collapsed)
+        document.querySelectorAll('.nav-item').forEach(item => {
+            const label = item.childNodes[1] && item.childNodes[1].textContent;
+            if (label && label.trim()) item.title = label.trim();
+        });
+
+        // Restore the last sidebar choice (desktop collapse)
+        try {
+            if (localStorage.getItem('udukku_sidebar_collapsed') === '1') {
+                document.body.classList.add('sidebar-collapsed');
+            }
+        } catch { /* ignore */ }
+        App.updateHandleLabel();
 
         if (toggle) {
             toggle.addEventListener('click', () => {
-                const sb = document.querySelector('.sidebar');
-                if (sb && sb.classList.contains('open')) this.closeSidebar();
+                // Mobile only — the chevron handle takes care of desktop
+                if (!App.isMobile()) return;
+                const sidebar = document.querySelector('.sidebar');
+                if (sidebar && sidebar.classList.contains('open')) this.closeSidebar();
                 else this.openSidebar();
             });
         }

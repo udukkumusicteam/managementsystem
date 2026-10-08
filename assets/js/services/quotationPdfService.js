@@ -216,9 +216,10 @@ export const QuotationPdfService = {
         doc.addFont('HankenGrotesk-Heavy.ttf', 'HKHeavy', 'normal');
     },
 
-    money(n) {
-        const v = Number(n) || 0;
-        return 'Rs. ' + v.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    // Currency-aware money (default INR keeps the "Rs." convention).
+    // Symbol/locales come from Formatters.CURRENCIES (3 Oct 2026).
+    money(n, currency) {
+        return Formatters.money(n, currency);
     },
 
     drawCardLabel(doc, F, label, x, y) {
@@ -288,6 +289,9 @@ export const QuotationPdfService = {
         doc.rect(0, 0, W, H, 'F');
 
         const logo = await this.resolveLogo();
+
+        // Currency for all amounts (3 Oct 2026; defaults to INR for older records)
+        const cur = quote.currency || 'INR';
 
         // ——— Pre-compute the note lines (needed for the layout height) ———
         const noteRaw = (quote.note && quote.note.trim()) ? quote.note.trim() : '';
@@ -423,7 +427,7 @@ export const QuotationPdfService = {
         doc.setFont(F, 'normal');
         doc.setFontSize(9);
         doc.setTextColor(...this.DA_SOFT);
-        doc.text(`Base rate: ${this.money(quote.baseRate)}/hr (excl. GST)`, 158, cy);
+        doc.text(`Base rate: ${this.money(quote.baseRate, cur)}/hr (excl. GST)`, 158, cy);
         cy += 5.6;
         const gstDesc = quote.gstMode === 'intra'
             ? `GST: ${quote.gstRates.cgst}% CGST + ${quote.gstRates.sgst}% SGST`
@@ -482,22 +486,22 @@ export const QuotationPdfService = {
             doc.setFontSize(9.5);
             doc.setTextColor(...this.DA);
             doc.text(`${p.discountPct}%`, cols[1].x + cols[1].w / 2, midY, { align: 'center' });
-            doc.text(`${this.money(p.discountedRate)}/hr`, cols[2].x + cols[2].w / 2, midY, { align: 'center' });
+            doc.text(`${this.money(p.discountedRate, cur)}/hr`, cols[2].x + cols[2].w / 2, midY, { align: 'center' });
 
             // Pre-GST amount: green text only
             doc.setFont(F, 'bold');
             doc.setTextColor(...this.GREEN_TX);
-            doc.text(this.money(p.subtotal), cols[3].x + cols[3].w / 2, midY, { align: 'center' });
+            doc.text(this.money(p.subtotal, cur), cols[3].x + cols[3].w / 2, midY, { align: 'center' });
 
             doc.setFont(F, 'normal');
             doc.setTextColor(...this.DA);
-            doc.text(this.money(p.gstTotal), cols[4].x + cols[4].w / 2, midY, { align: 'center' });
+            doc.text(this.money(p.gstTotal, cur), cols[4].x + cols[4].w / 2, midY, { align: 'center' });
 
             // Total: the hero number — bold, no colour highlight
             doc.setFont(F, 'bold');
             doc.setFontSize(11);
             doc.setTextColor(...this.DA);
-            doc.text(this.money(p.total), cols[5].x + cols[5].w - 3, midY, { align: 'right' });
+            doc.text(this.money(p.total, cur), cols[5].x + cols[5].w - 3, midY, { align: 'right' });
 
             ry += rowH;
         });
@@ -570,6 +574,6 @@ export const QuotationPdfService = {
 
         // ——— Save ———
         const safeName = (quote.client.name || 'client').replace(/\s+/g, '_');
-        doc.save(`Udukku_Quotation_${quote.number}_${safeName}.pdf`);
+        doc.save(`Udukku_Pricing_Estimate_${quote.number}_${safeName}.pdf`);
     }
 };

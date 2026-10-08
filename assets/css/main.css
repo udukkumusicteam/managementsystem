@@ -60,7 +60,7 @@ body {
 .sidebar {
     width: 260px;
     background: var(--vivid-brown);
-    min-height: 100vh;
+    height: 100vh;
     position: fixed;
     left: 0;
     top: 0;
@@ -90,6 +90,8 @@ body {
 .sidebar-nav {
     padding: 20px 12px;
     flex: 1;
+    min-height: 0;
+    overflow-y: auto;
 }
 
 .nav-section-label {
@@ -595,6 +597,7 @@ body {
     justify-content: space-between;
     margin-bottom: 24px;
 }
+
 .page-header h2 {
     font-size: 22px;
     font-weight: 800;
@@ -1475,7 +1478,7 @@ table.data-table tr:hover td {
 
 .form-row-3 {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr;
     gap: 12px;
     margin-bottom: 8px;
 }
@@ -1632,6 +1635,7 @@ table.data-table tr:hover td {
     cursor: pointer;
     transition: var(--transition);
 }
+
 .sig-drop:hover {
     background: var(--light-orange);
     border-color: rgba(193, 49, 0, 0.55);
@@ -1795,7 +1799,6 @@ table.data-table tr:hover td {
     .topbar { padding: 12px 16px; }
 }
 
-
 /* ═══ Website Submissions page (added 3 Oct 2026) ═══ */
 .ws-stats {
     display: grid;
@@ -1845,4 +1848,81 @@ table.data-table tr:hover td {
 }
 @media (max-width: 640px) {
     .ws-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ===== Collapsible sidebar (desktop icon rail — v2 chevron handle, 7 Oct 2026) ===== */
+.sidebar { transition: width 0.25s ease; }
+.main-content { transition: margin-left 0.25s ease; }
+
+/* Chevron handle: small round button riding the sidebar's right edge (desktop only).
+   ‹ = click to collapse, › = click to expand (the icon flips when collapsed). */
+.sidebar-collapse-handle {
+    position: absolute;
+    top: 50%;
+    left: calc(100% - 14px);
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(8, 32, 50, 0.30);
+    border-radius: 50%;
+    background: var(--light-yellow);
+    color: var(--vivid-brown);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(8, 32, 50, 0.20);
+    transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+.sidebar-collapse-handle:hover {
+    background: var(--light-orange);
+    box-shadow: 0 3px 12px rgba(8, 32, 50, 0.30);
+}
+.sidebar-collapse-handle:active { transform: translateY(-50%) scale(0.94); }
+.sidebar-collapse-handle svg { display: block; transition: transform 0.25s ease; }
+
+body.sidebar-collapsed .sidebar { width: 76px; }
+body.sidebar-collapsed .main-content { margin-left: 76px; }
+body.sidebar-collapsed .sidebar-collapse-handle svg { transform: rotate(180deg); }
+
+body.sidebar-collapsed .sidebar-logo,
+body.sidebar-collapsed .nav-section-label { display: none; }
+
+body.sidebar-collapsed .sidebar-nav { padding: 12px 10px; }
+
+body.sidebar-collapsed .nav-item {
+    font-size: 0; /* hides the text label; icon keeps its own size */
+    gap: 0;
+    justify-content: center;
+    padding: 11px 0;
+}
+body.sidebar-collapsed .nav-item .nav-icon {
+    font-size: 18px;
+    width: auto;
+}
+
+body.sidebar-collapsed .sidebar-footer {
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+}
+body.sidebar-collapsed .admin-info,
+body.sidebar-collapsed .admin-badge .icon-btn { display: none; }
+
+/* Mobile keeps the full-width drawer — collapse only applies on desktop */
+@media (max-width: 900px) {
+    .sidebar-collapse-handle { display: none; }
+    body.sidebar-collapsed .sidebar { width: 260px; }
+    body.sidebar-collapsed .main-content { margin-left: 0; }
+    body.sidebar-collapsed .sidebar-logo,
+    body.sidebar-collapsed .nav-section-label { display: block; }
+    body.sidebar-collapsed .nav-item {
+        font-size: 14px;
+        gap: 12px;
+        justify-content: flex-start;
+        padding: 11px 14px;
+    }
+    body.sidebar-collapsed .admin-info,
+    body.sidebar-collapsed .admin-badge .icon-btn { display: flex; }
 }

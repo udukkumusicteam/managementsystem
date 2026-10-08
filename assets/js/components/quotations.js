@@ -48,7 +48,7 @@ export const Quotations = {
         if (success) success.classList.remove('active');
 
         const newBtn = document.getElementById('btn-new-quotation');
-        if (newBtn) newBtn.innerHTML = '✨ New Quotation';
+        if (newBtn) newBtn.innerHTML = '✨ New Pricing Estimate';
 
         this.populateTutors();
         this.addPackageRow(6, 2);
@@ -178,7 +178,7 @@ export const Quotations = {
             </div>
 
             <button class="btn btn-primary btn-lg" id="btn-save-quotation" style="width:100%">
-                🧾 Save &amp; Download Quotation PDF
+                🧾 Save &amp; Download Pricing Estimate PDF
             </button>
         `;
     },
@@ -475,14 +475,14 @@ export const Quotations = {
         let saved = null;
         if (this.editingId) {
             saved = QuotationService.update(this.editingId, data);
-            if (saved) UI.showToast('Quotation updated! ✅', 'success');
+            if (saved) UI.showToast('Pricing estimate updated! ✅', 'success');
         } else {
             saved = QuotationService.create(data);
-            if (saved) UI.showToast('Quotation created! 🎉', 'success');
+            if (saved) UI.showToast('Pricing estimate created! 🎉', 'success');
         }
 
         if (!saved) {
-            UI.showToast('Failed to save quotation', 'error');
+            UI.showToast('Failed to save pricing estimate', 'error');
             return;
         }
 
@@ -501,13 +501,13 @@ export const Quotations = {
         success.classList.add('active');
 
         document.getElementById('quote-success-message').textContent =
-            `Quotation ${q.number} for ${q.client.name} — ${q.subject} with ${q.tutorName} — has been saved.`;
+            `Pricing estimate ${q.number} for ${q.client.name} — ${q.subject} with ${q.tutorName} — has been saved.`;
 
         const actions = document.getElementById('quote-success-actions');
         actions.innerHTML = `
             <button class="btn btn-primary" id="btn-q-download">🧾 Download PDF</button>
-            <button class="btn btn-secondary" id="btn-q-edit">✏️ Edit Quotation</button>
-            <button class="btn btn-ghost" id="btn-q-new">➕ New Quotation</button>
+            <button class="btn btn-secondary" id="btn-q-edit">✏️ Edit Pricing Estimate</button>
+            <button class="btn btn-ghost" id="btn-q-new">➕ New Pricing Estimate</button>
         `;
         document.getElementById('btn-q-download').addEventListener('click', () => this.downloadPdf());
         document.getElementById('btn-q-edit').addEventListener('click', () => this.loadForEdit(q.id));
@@ -568,8 +568,8 @@ export const Quotations = {
 
         document.getElementById('quote-layout').style.display = 'grid';
         document.getElementById('quote-success').classList.remove('active');
-        document.getElementById('btn-new-quotation').innerHTML = '✨ New Quotation';
-        document.querySelector('#page-quotations .page-header h2').textContent = 'Edit Quotation';
+        document.getElementById('btn-new-quotation').innerHTML = '✨ New Pricing Estimate';
+        document.querySelector('#page-quotations .page-header h2').textContent = 'Edit Pricing Estimate';
 
         this.renderPreview();
         window.scrollTo(0, 0);
@@ -579,15 +579,15 @@ export const Quotations = {
         const q = Store.getQuotationById(id);
         if (!q) return;
         UI.showConfirm(
-            'Delete Quotation',
-            `Delete quotation ${q.number} for ${q.client.name}? This cannot be undone.`,
+            'Delete Pricing Estimate',
+            `Delete pricing estimate ${q.number} for ${q.client.name}? This cannot be undone.`,
             () => {
                 if (Store.deleteQuotation(id)) {
-                    UI.showToast('Quotation deleted', 'success');
+                    UI.showToast('Pricing estimate deleted', 'success');
                     if (this.editingId === id) this.startNew();
                     this.renderHistory();
                 } else {
-                    UI.showToast('Failed to delete quotation', 'error');
+                    UI.showToast('Failed to delete pricing estimate', 'error');
                 }
             }
         );
@@ -602,7 +602,7 @@ export const Quotations = {
         const quotes = Store.getQuotations().sort((a, b) => b.createdAt - a.createdAt);
 
         if (quotes.length === 0) {
-            UI.showEmptyState(container, '🧾', 'No quotations yet', 'Create your first client quotation above.');
+            UI.showEmptyState(container, '🧾', 'No pricing estimates yet', 'Create your first pricing estimate above.');
             return;
         }
 

@@ -27,7 +27,7 @@ export const Settings = {
                 <div class="card-body">
                     <p style="font-size:13.5px; color:var(--brown-light); line-height:1.6; margin-bottom:20px">
                         Connect the app to Udukku's shared Supabase database so every team member works
-                        from the same tutors, payslips and quotations — on any device. Until it's connected,
+                        from the same tutors, payslips and pricing estimates — on any device. Until it's connected,
                         your data stays in this browser only.
                     </p>
                     ${connected ? this.connectedHTML(user) : this.connectHTML()}
@@ -103,7 +103,7 @@ export const Settings = {
                     <div class="quick-action-icon">⬆️</div>
                     <div class="quick-action-text">
                         <h4>Move my local data to the cloud</h4>
-                        <p>Upload this browser's tutors, payslips and quotations (adds to what's there — nothing is removed)</p>
+                        <p>Upload this browser's tutors, payslips and pricing estimates (adds to what's there — nothing is removed)</p>
                     </div>
                 </div>
                 ${user ? `
@@ -159,10 +159,10 @@ export const Settings = {
             }
         });
 
-        document.getElementById('set-migrate')?.addEventListener('click', () => {
+        document.getElementById('set-migrate')?.addEventListener('click', async () => {
             UI.showConfirm(
                 'Move local data to the cloud',
-                'This uploads the tutors, payslips and quotations saved in this browser to the shared database. It only adds or updates records — it never deletes anything from the cloud. Continue?',
+                'This uploads the tutors, payslips and pricing estimates saved in this browser to the shared database. It only adds or updates records — it never deletes anything from the cloud. Continue?',
                 async () => {
                     UI.showToast('Uploading your local data…', 'info');
                     await Cloud.pushAll(true);

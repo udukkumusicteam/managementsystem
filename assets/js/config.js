@@ -50,5 +50,29 @@ export const Config = {
         unit: 'mm',
         margin: 20,
         font: 'helvetica'
+    },
+
+    // Project-specific billing block for proforma invoices.
+    // Taken from the team's Oct 2026 "TEMPLATE - PROFORMA INVOICES".
+    // These details are not in the Udukku Source of Truth v1.0 — they stay
+    // project-only unless later approved for the SoT.
+    invoice: {
+        billedByName: 'Ishita Parakh',
+        billedByCompany: 'Udukku Music',
+        addressLines: [
+            'M-23 Income Tax Colony,',
+            'Tonk Road, Durgapura,',
+            'Jaipur - 302018'
+        ],
+        gstin: '08CMSPP2539P1Z0',
+        hsn: '999291',
+        terms: 'Due on Receipt',
+        bank: {
+            accountName: 'Udukku Music',
+            bankName: 'HDFC Bank',
+            accountNumber: '50200114082375',
+            ifsc: 'HDFC0009532'
+        },
+        upi: 'udukkumusic@axl'
     }
 };

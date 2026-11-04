@@ -40,6 +40,10 @@
                 <span class="nav-icon">🧾</span>
                 Pricing Estimate
             </div>
+            <div class="nav-item" data-page="invoices">
+                <span class="nav-icon">📄</span>
+                Invoices
+            </div>
             <div class="nav-item" data-page="website">
                 <span class="nav-icon">🌐</span>
                 Website Submissions
@@ -243,6 +247,54 @@
                         <h3>Saved Pricing Estimates</h3>
                     </div>
                     <div class="card-body" id="quotations-history"></div>
+                </div>
+            </div>
+
+            <!-- Invoices Page (sibling of Pricing Estimate — never nested) -->
+            <div class="page" id="page-invoices">
+                <div class="page-header">
+                    <div>
+                        <h2>Invoices</h2>
+                        <p>Create a proforma or music training invoice — no pricing estimate needed</p>
+                    </div>
+                    <button class="btn btn-primary" id="btn-new-invoice" type="button">
+                        ✨ New Invoice
+                    </button>
+                </div>
+
+                <div class="generate-layout" id="invoice-layout">
+                    <div class="form-section">
+                        <div class="form-section-header">
+                            <h3>📄 Invoice</h3>
+                            <p>Every field is editable. Saving keeps other invoices for the same client.</p>
+                        </div>
+                        <div class="form-section-body" id="invoice-form-body"></div>
+                    </div>
+                    <div class="preview-card" id="invoice-preview"></div>
+                </div>
+
+                <div class="card" style="margin-top:28px">
+                    <div class="card-header">
+                        <h3>Saved invoices</h3>
+                        <input type="search" class="form-control" id="invoice-search"
+                            placeholder="Search client, PI number…" style="max-width:240px">
+                    </div>
+                    <div class="card-body" style="overflow-x:auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>PI No.</th>
+                                    <th>Client</th>
+                                    <th>From estimate</th>
+                                    <th>Package</th>
+                                    <th>Total</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoices-table-body"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 

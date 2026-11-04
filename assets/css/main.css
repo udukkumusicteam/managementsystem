@@ -1143,6 +1143,7 @@ select.form-control {
     gap: 12px;
     justify-content: center;
     flex-wrap: wrap;
+    flex-wrap: wrap;
 }
 
 /* ===== PAYSLIPS TABLE ===== */
@@ -1782,6 +1783,178 @@ table.data-table tr:hover td {
 .status-signed {
     background: rgba(39, 174, 96, 0.16);
     color: #1d7a45;
+}
+
+/* ═══ Proforma invoice (accepted plan → QR invoice, 25 Oct 2026) ═══ */
+.inv-pkg-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.inv-pkg {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 14px;
+    border: 1.5px solid var(--cream-dark);
+    border-radius: 12px;
+    background: var(--white);
+    cursor: pointer;
+}
+.inv-pkg input { accent-color: var(--vivid-brown); }
+.inv-pkg strong { display: block; font-size: 14px; color: var(--dark-azure); }
+.inv-pkg span { font-size: 12px; color: var(--brown-light); }
+.inv-pkg-total { font-weight: 800; color: var(--vivid-brown); font-size: 14px; }
+.inv-pkg.active {
+    border-color: var(--vivid-brown);
+    background: var(--light-orange);
+}
+
+#invoice-preview.preview-card {
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
+}
+
+.inv-sheet {
+    background: #fff;
+    color: #292929;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    font-size: 10.5px;
+    line-height: 1.35;
+}
+.inv-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 16px 8px;
+}
+.inv-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--dark-azure);
+    line-height: 0.95;
+    letter-spacing: -0.6px;
+}
+.inv-meta {
+    text-align: right;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--dark-azure);
+}
+.inv-pill {
+    display: inline-block;
+    border: 1.4px solid var(--dark-azure);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 8px;
+    letter-spacing: 0.6px;
+    margin-bottom: 6px;
+}
+.inv-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 8px 16px 12px;
+}
+.inv-label {
+    color: #F77841;
+    font-weight: 800;
+    font-size: 9px;
+    letter-spacing: 0.8px;
+    margin-bottom: 4px;
+}
+.inv-strong { font-weight: 800; color: #292929; }
+.inv-sheet > .inv-label { padding: 0 16px; }
+.inv-details {
+    margin: 0 16px 12px 28px;
+    padding: 0;
+    font-size: 10.5px;
+}
+.inv-details li { margin: 3px 0; }
+.inv-table {
+    width: calc(100% - 32px);
+    margin: 0 16px 12px;
+    border-collapse: collapse;
+    font-size: 10px;
+}
+.inv-table th {
+    text-align: left;
+    font-size: 8.5px;
+    letter-spacing: 0.5px;
+    border-bottom: 1.4px solid #1e1e1e;
+    padding: 0 0 6px;
+    color: var(--dark-azure);
+}
+.inv-table th:last-child, .inv-table td:last-child { text-align: right; }
+.inv-table td {
+    padding: 10px 0 8px;
+    border-bottom: 1.4px solid #1e1e1e;
+    font-weight: 600;
+}
+.inv-bottom {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 12px;
+    padding: 8px 16px 12px;
+}
+.inv-pay { font-size: 10px; }
+.inv-qr {
+    width: 96px;
+    height: 96px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    display: block;
+    margin: 10px 0 4px;
+}
+.inv-upi { font-size: 9px; }
+.inv-totals { font-size: 10.5px; }
+.inv-t-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 3px 0;
+}
+.inv-t-red { color: #c62828; font-weight: 700; }
+.inv-t-sub {
+    border-top: 1px solid #1e1e1e;
+    padding-top: 4px;
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+.inv-t-grand { font-weight: 800; font-size: 12px; margin-top: 4px; }
+.inv-due {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 8px;
+}
+.inv-due span {
+    background: #ececec;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-weight: 700;
+    font-size: 10px;
+    color: #555;
+}
+.inv-footer {
+    background: #F87842;
+    color: #fff;
+    padding: 0;
+    margin-top: 4px;
+    line-height: 0;
+}
+.inv-footer img {
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: none;
 }
 
 @media (max-width: 1200px) {

@@ -53,6 +53,7 @@ export const Dashboard = {
             payslips: ['All Receipts', 'View and manage all generated payment receipts'],
             approvals: ['Receipt Approvals', 'Sign and release payment receipts'],
             quotations: ['Pricing Estimates', 'Create client pricing estimates with live pricing'],
+            invoices: ['Invoices', 'Create a proforma or music training invoice'],
             website: ['Website Submissions', 'Enquiries from udukkumusic.com'],
             tutors: ['Tutor Management', 'Manage tutor profiles and rates'],
             settings: ['Settings', 'Shared database, team access and data']
@@ -69,6 +70,12 @@ export const Dashboard = {
             import('./approvals.js').then(module => module.Approvals.init());
         } else if (page === 'quotations') {
             import('./quotations.js').then(module => module.Quotations.init());
+        } else if (page === 'invoices') {
+            import('./invoices.js').then(module => {
+                module.Invoices.init();
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.getElementById('page-invoices')?.classList.add('active');
+            });
         } else if (page === 'website') {
             import('./websiteSubmissions.js').then(module => module.WebsiteSubmissions.init());
         } else if (page === 'tutors') {
@@ -94,9 +101,6 @@ export const Dashboard = {
         const stats = Store.getStats();
         const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-        // "This Month" = receipts GENERATED in the current calendar month
-        // (not their pay period — so September receipts created in October
-        //  count under October, matching what the user did "this month").
         const now = new Date();
         const cm = now.getMonth();
         const cy = now.getFullYear();
@@ -105,8 +109,6 @@ export const Dashboard = {
             return d.getMonth() === cm && d.getFullYear() === cy;
         });
 
-        // Multi-currency: never add different currencies into one number.
-        // Headline = INR total; other currencies itemised on the sub-line.
         const byCur = {};
         thisMonth.forEach(p => {
             const c = p.currency || 'INR';
@@ -203,6 +205,7 @@ export const Dashboard = {
             { icon: '✨', title: 'Generate Receipt', description: 'Create a new tutor payment receipt', page: 'generate' },
             { icon: '✍️', title: 'Approve Receipts', description: pendingCount > 0 ? `${pendingCount} waiting for signature` : 'Sign and release payment receipts', page: 'approvals' },
             { icon: '🧾', title: 'Create Pricing Estimate', description: 'Build a client pricing estimate with live pricing', page: 'quotations' },
+            { icon: '📄', title: 'Create Invoice', description: 'Proforma or music training invoice — even without an estimate', page: 'invoices' },
             { icon: '🌐', title: 'Website Submissions', description: 'Enquiries from udukkumusic.com', page: 'website' },
             { icon: '➕', title: 'Add Tutor', description: 'Register a new tutor profile', action: 'add-tutor' },
             { icon: '🗂️', title: 'View All Receipts', description: 'Search and manage payment receipts', page: 'payslips' },

@@ -132,6 +132,10 @@ const App = {
         // Initialize dashboard (default page)
         Dashboard.init();
 
+        // Invoices is its own sidebar page — load it at startup so the tab
+        // is never blank if someone opens it before Pricing Estimate.
+        import('./components/invoices.js').then(module => module.Invoices.install());
+
         // Cloud database (activates only if connected in Settings)
         Cloud.init();
 

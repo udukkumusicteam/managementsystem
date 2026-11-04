@@ -23,6 +23,7 @@ export const Quotations = {
         this.bindPageEvents();
         this.startNew();
         this.renderHistory();
+        import('./invoices.js').then(m => m.Invoices.install()).catch(() => {});
     },
 
     bindPageEvents() {
@@ -506,10 +507,12 @@ export const Quotations = {
         const actions = document.getElementById('quote-success-actions');
         actions.innerHTML = `
             <button class="btn btn-primary" id="btn-q-download">🧾 Download PDF</button>
+            <button class="btn btn-secondary" id="btn-q-invoice">📄 Create invoice</button>
             <button class="btn btn-secondary" id="btn-q-edit">✏️ Edit Pricing Estimate</button>
             <button class="btn btn-ghost" id="btn-q-new">➕ New Pricing Estimate</button>
         `;
         document.getElementById('btn-q-download').addEventListener('click', () => this.downloadPdf());
+        document.getElementById('btn-q-invoice')?.addEventListener('click', () => this.createInvoice(q));
         document.getElementById('btn-q-edit').addEventListener('click', () => this.loadForEdit(q.id));
         document.getElementById('btn-q-new').addEventListener('click', () => {
             this.startNew();
@@ -522,6 +525,15 @@ export const Quotations = {
         if (!q) return;
         const { QuotationPdfService } = await import('../services/quotationPdfService.js');
         QuotationPdfService.generate(q);
+    },
+
+    async createInvoice(quote) {
+        const q = quote || this.lastQuotation;
+        if (!q) return;
+        const { Invoices } = await import('./invoices.js');
+        Invoices.fromQuotation(q);
+        const { Dashboard } = await import('./dashboard.js');
+        Dashboard.navigateTo('invoices');
     },
 
     /* =============== EDIT / DELETE =============== */
@@ -599,7 +611,9 @@ export const Quotations = {
         const container = document.getElementById('quotations-history');
         if (!container) return;
 
-        const quotes = Store.getQuotations().sort((a, b) => b.createdAt - a.createdAt);
+        const quotes = Store.getQuotations()
+            .filter(q => q && q.source !== 'standalone-invoice')
+            .sort((a, b) => b.createdAt - a.createdAt);
 
         if (quotes.length === 0) {
             UI.showEmptyState(container, '🧾', 'No pricing estimates yet', 'Create your first pricing estimate above.');
@@ -626,6 +640,7 @@ export const Quotations = {
                             <td>
                                 <div class="table-actions">
                                     <button class="icon-btn" title="Download PDF" data-action="download" data-id="${q.id}">⬇️</button>
+                                    <button class="icon-btn" title="Create invoice" data-action="invoice" data-id="${q.id}">📄</button>
                                     <button class="icon-btn" title="Edit" data-action="edit" data-id="${q.id}">✏️</button>
                                     <button class="icon-btn" title="Delete" data-action="delete" data-id="${q.id}">🗑️</button>
                                 </div>
@@ -643,6 +658,7 @@ export const Quotations = {
                 if (!q) return;
                 const action = btn.dataset.action;
                 if (action === 'download') this.downloadPdf(q);
+                else if (action === 'invoice') this.createInvoice(q);
                 else if (action === 'edit') this.loadForEdit(q.id);
                 else if (action === 'delete') this.deleteQuotation(q.id);
             });

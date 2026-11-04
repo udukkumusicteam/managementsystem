@@ -195,6 +195,23 @@ export const Formatters = {
         return `${d.getDate()} ${this.monthLong(d.getMonth())} ${d.getFullYear()}`;
     },
 
+    /** "21st October 2026" parts — used by the proforma invoice (template ordinal). */
+    dateOrdinal(timestamp) {
+        const d = new Date(timestamp);
+        const day = d.getDate();
+        const v = day % 100;
+        const ord = (v >= 11 && v <= 13)
+            ? 'th'
+            : ({ 1: 'st', 2: 'nd', 3: 'rd' }[day % 10] || 'th');
+        return {
+            day,
+            ord,
+            month: this.monthLong(d.getMonth()),
+            year: d.getFullYear(),
+            text: `${day}${ord} ${this.monthLong(d.getMonth())} ${d.getFullYear()}`
+        };
+    },
+
     monthLong(monthIndex) {
         const months = [
             'January', 'February', 'March', 'April', 'May', 'June',

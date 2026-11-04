@@ -22,11 +22,11 @@ const CONFIG_KEY = 'udukku_cloud_config';
  * in the meantime are never touched.
  */
 export const Cloud = {
-    TABLES: ['tutors', 'payslips', 'quotations'],
+    TABLES: ['tutors', 'payslips', 'quotations', 'invoices'],
     _client: null,
     _connected: false,
     _session: null,
-    _baseline: { tutors: new Set(), payslips: new Set(), quotations: new Set() },
+    _baseline: { tutors: new Set(), payslips: new Set(), quotations: new Set(), invoices: new Set() },
     _pushTimer: null,
     _authAttached: false,
 
@@ -172,7 +172,7 @@ export const Cloud = {
         this._connected = false;
         this._session = null;
         this._authAttached = false;
-        this._baseline = { tutors: new Set(), payslips: new Set(), quotations: new Set() };
+        this._baseline = { tutors: new Set(), payslips: new Set(), quotations: new Set(), invoices: new Set() };
         this.hideAuthGate();
     },
 
@@ -233,6 +233,12 @@ export const Cloud = {
         for (const t of this.TABLES) {
             const { data, error } = await this._client.from(t).select('id, data');
             if (error) {
+                if (t === 'invoices' && (error.code === '42P01' || /does not exist/i.test(error.message || ''))) {
+                    UI.showToast("Cloud: 'invoices' table is missing — run the invoices SQL in Supabase", 'error');
+                    this._baseline.invoices = new Set();
+                    payload.invoices = [];
+                    continue;
+                }
                 UI.showToast(`Cloud: couldn't load ${t} — ${error.message}`, 'error');
                 throw error;
             }
@@ -253,6 +259,11 @@ export const Cloud = {
             for (const t of this.TABLES) {
                 const { data, error } = await this._client.from(t).select('id, data');
                 if (error) {
+                    if (t === 'invoices' && (error.code === '42P01' || /does not exist/i.test(error.message || ''))) {
+                        this._baseline.invoices = new Set();
+                        payload.invoices = [];
+                        continue;
+                    }
                     UI.showToast(`Cloud: couldn't reload ${t} — ${error.message}`, 'error');
                     throw error;
                 }
@@ -281,7 +292,8 @@ export const Cloud = {
         const state = Store.getState();
         for (const t of this.TABLES) {
             const local = state[t] || [];
-            const localIds = new Set(local.map(r => r.id));
+            const localIds = new Set(local.map(r => r.id).filter(Boolean));
+            if (!this._baseline[t]) this._baseline[t] = new Set();
 
             // Delete rows that were in our baseline and are gone locally now
             const toDelete = [...this._baseline[t]].filter(id => !localIds.has(id));
@@ -335,6 +347,8 @@ export const Cloud = {
             import('../components/approvals.js').then(m => m.Approvals.init());
         } else if (active === 'page-quotations') {
             import('../components/quotations.js').then(m => m.Quotations.init());
+        } else if (active === 'page-invoices') {
+            import('../components/invoices.js').then(m => m.Invoices.init());
         } else if (active === 'page-website') {
             import('../components/websiteSubmissions.js').then(m => m.WebsiteSubmissions.init());
         } else if (active === 'page-tutors') {

@@ -86,6 +86,19 @@ export const Invoices = {
             .inv-prev-qr img { width: 88px; height: 88px; object-fit: contain; display: block; background: #ffffff; }
             .inv-prev-upi { width: 88px; text-align: center; font-weight: 700; font-size: 10px; margin-top: 4px; }
             .inv-prev-foot { display: block; width: calc(100% + 32px); margin: 14px -16px 0; }
+            #inv-pkg-modal .modal { max-width: 480px; }
+            #inv-pkg-modal .inv-pkg-intro { font-size: 14px; color: var(--brown-light); line-height: 1.6; margin: 0 0 14px; }
+            .inv-pkg-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+            .inv-pkg {
+                display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
+                padding: 12px 14px; border: 1.5px solid var(--cream-dark, #e8e0d4); border-radius: 12px;
+                background: var(--white, #fff); cursor: pointer; text-align: left;
+            }
+            .inv-pkg input { accent-color: var(--vivid-brown, #c13100); }
+            .inv-pkg strong { display: block; font-size: 14px; color: var(--dark-azure, #082032); }
+            .inv-pkg span { font-size: 12px; color: var(--brown-light, #8a7a6a); }
+            .inv-pkg-total { font-weight: 800; color: var(--vivid-brown, #c13100); font-size: 14px; white-space: nowrap; }
+            .inv-pkg.active { border-color: var(--vivid-brown, #c13100); background: var(--light-orange, #fff4ea); }
         `;
     },
 
@@ -171,6 +184,7 @@ export const Invoices = {
         return `
             <input type="hidden" id="inv-editing-id" value="">
             <input type="hidden" id="inv-quotation-id" value="">
+            <input type="hidden" id="inv-package-index" value="">
 
             <div class="section-title">Heading</div>
             <div class="form-group">
@@ -271,6 +285,7 @@ export const Invoices = {
         const needsPaint = !page.querySelector('#invoices-table-body')
             || !page.querySelector('#invoice-form-body')
             || !page.querySelector('#inv-client-name')
+            || !page.querySelector('#inv-package-index')
             || !page.querySelector('#invoice-preview');
         if (needsPaint) {
             page.innerHTML = this.pageHTML();
@@ -347,9 +362,26 @@ export const Invoices = {
                 this.persistTypeFromForm();
                 this.renderPreview();
             }
-            if (el.id === 'inv-from-estimate' && el.value) {
+            if (el.id === 'inv-from-estimate') {
+                const prev = el.dataset.prev || '';
+                if (!el.value) {
+                    this.set('inv-quotation-id', '');
+                    this.set('inv-package-index', '');
+                    el.dataset.prev = '';
+                    this.schedulePreview();
+                    return;
+                }
                 const q = Store.getQuotationById(el.value);
-                if (q) this.applyQuotation(q, { keepId: true });
+                if (!q) return;
+                this.pickPackage(q).then((idx) => {
+                    if (idx == null) {
+                        el.value = prev;
+                        return;
+                    }
+                    this.applyQuotation(q, { keepId: true, packageIndex: idx });
+                    el.dataset.prev = el.value;
+                    this.schedulePreview();
+                });
             }
             if (el.closest && el.closest('#invoice-form-body, #invoice-layout')) {
                 this.schedulePreview();
@@ -401,11 +433,14 @@ export const Invoices = {
         const qid = document.getElementById('inv-quotation-id')?.value
             || document.getElementById('inv-from-estimate')?.value
             || '';
+        const pkgIdxRaw = document.getElementById('inv-package-index')?.value;
+        const packageIndex = pkgIdxRaw === '' || pkgIdxRaw == null ? existing?.packageIndex : Number(pkgIdxRaw);
         return InvoiceService.buildPdfModel({
             ...(existing || {}),
             quotationId: qid || existing?.quotationId || '',
             number: document.getElementById('inv-number')?.value || existing?.number || '',
-            lineDesc: document.getElementById('inv-line-desc')?.value || existing?.lineDesc
+            lineDesc: document.getElementById('inv-line-desc')?.value || existing?.lineDesc,
+            packageIndex
         }, { useForm: true });
     },
 
@@ -633,6 +668,7 @@ export const Invoices = {
         this.install();
         this.set('inv-editing-id', '');
         this.set('inv-quotation-id', '');
+        this.set('inv-package-index', '');
         this.set('inv-number', Store.nextInvoiceNumber());
         this.set('inv-date', this.todayInput());
         this.set('inv-client-name', '');
@@ -646,7 +682,10 @@ export const Invoices = {
         this.set('inv-discount', '');
         this.set('inv-line-desc', 'Individual Session (1x)');
         const est = document.getElementById('inv-from-estimate');
-        if (est) est.value = '';
+        if (est) {
+            est.value = '';
+            est.dataset.prev = '';
+        }
         const pro = document.getElementById('inv-type-proforma');
         if (pro) pro.checked = true;
         const train = document.getElementById('inv-type-training');
@@ -655,27 +694,136 @@ export const Invoices = {
         window.scrollTo(0, 0);
     },
 
-    applyQuotation(q, { keepId = false } = {}) {
+    applyQuotation(q, { keepId = false, packageIndex = 0 } = {}) {
         if (!q) return;
         if (!keepId) this.set('inv-editing-id', '');
         this.set('inv-quotation-id', q.id || '');
         const est = document.getElementById('inv-from-estimate');
-        if (est) est.value = q.id || '';
+        if (est) {
+            est.value = q.id || '';
+            est.dataset.prev = q.id || '';
+        }
         const client = q.client || {};
         if (client.name) this.set('inv-client-name', client.name);
         if (client.city) this.set('inv-client-city', client.city);
         if (client.state) this.set('inv-client-state', client.state);
-        const pkg = (q.packages && q.packages[0]) || {};
+        const pkgs = q.packages || [];
+        const idx = Math.max(0, Math.min(pkgs.length - 1, Number(packageIndex) || 0));
+        this.set('inv-package-index', pkgs.length ? String(idx) : '');
+        const pkg = pkgs[idx] || {};
         if (pkg.hours != null && pkg.hours !== '') this.set('inv-hours', pkg.hours);
         if (q.baseRate != null) this.set('inv-rate', q.baseRate);
         if (pkg.discountPct != null && pkg.discountPct !== '') this.set('inv-discount', pkg.discountPct);
         this.renderPreview();
     },
 
-    fromQuotation(q) {
+    /**
+     * Ask which estimate package the client chose.
+     * Resolves to the package index, or null if cancelled / none available.
+     * One package → no menu (nothing to choose).
+     * Standalone invoices never call this.
+     */
+    pickPackage(q) {
+        return new Promise((resolve) => {
+            const pkgs = Array.isArray(q && q.packages) ? q.packages : [];
+            const usable = pkgs
+                .map((p, i) => ({ p, i }))
+                .filter(({ p }) => parseFloat(p && p.hours) > 0);
+            if (!usable.length) {
+                UI.showToast('This pricing estimate has no packages to put on an invoice', 'error');
+                resolve(null);
+                return;
+            }
+            if (usable.length === 1) {
+                resolve(usable[0].i);
+                return;
+            }
+
+            this.ensurePreviewStyles();
+            let overlay = document.getElementById('inv-pkg-modal');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'inv-pkg-modal';
+                overlay.className = 'modal-overlay';
+                document.body.appendChild(overlay);
+            }
+
+            const money = (n) => {
+                try {
+                    if (Formatters.money) return Formatters.money(n, q.currency || 'INR');
+                    return Formatters.currency(n);
+                } catch (err) {
+                    return 'Rs. ' + Number(n || 0).toLocaleString('en-IN');
+                }
+            };
+            const client = this.esc((q.client && q.client.name) || 'this client');
+            const num = this.esc(q.number || 'this estimate');
+            const rows = usable.map(({ p, i }, n) => {
+                const hours = Number(p.hours) || 0;
+                const disc = Number(p.discountPct) || 0;
+                const rate = p.discountedRate != null ? p.discountedRate : q.baseRate;
+                const total = p.total != null ? p.total : '';
+                const hourLabel = `${hours} Hour${hours === 1 ? '' : 's'}`;
+                const discLabel = disc ? `${disc}% discount · ${money(rate)} / session` : `${money(rate)} / session`;
+                return `
+                    <label class="inv-pkg${n === 0 ? ' active' : ''}">
+                        <input type="radio" name="inv-pkg-choice" value="${i}"${n === 0 ? ' checked' : ''}>
+                        <div>
+                            <strong>${this.esc(hourLabel)}</strong>
+                            <span>${this.esc(discLabel)}</span>
+                        </div>
+                        <div class="inv-pkg-total">${total === '' ? '' : this.esc(money(total))}</div>
+                    </label>`;
+            }).join('');
+
+            overlay.innerHTML = `
+                <div class="modal" style="max-width:480px" role="dialog" aria-labelledby="inv-pkg-title">
+                    <div class="modal-header">
+                        <h3 id="inv-pkg-title">Which option did the client choose?</h3>
+                        <button class="modal-close" type="button" id="inv-pkg-x">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="inv-pkg-intro">${num} for ${client} — pick the package for this invoice. Every field stays editable after this.</p>
+                        <div class="inv-pkg-list">${rows}</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-ghost" type="button" id="inv-pkg-cancel">Cancel</button>
+                        <button class="btn btn-primary" type="button" id="inv-pkg-continue">Create invoice</button>
+                    </div>
+                </div>`;
+
+            let done = false;
+            const finish = (value) => {
+                if (done) return;
+                done = true;
+                overlay.classList.remove('active');
+                resolve(value);
+            };
+            overlay.querySelectorAll('.inv-pkg').forEach((row) => {
+                row.addEventListener('click', () => {
+                    overlay.querySelectorAll('.inv-pkg').forEach((r) => r.classList.remove('active'));
+                    row.classList.add('active');
+                    const radio = row.querySelector('input');
+                    if (radio) radio.checked = true;
+                });
+            });
+            overlay.querySelector('#inv-pkg-continue')?.addEventListener('click', () => {
+                const sel = overlay.querySelector('input[name="inv-pkg-choice"]:checked');
+                finish(sel ? Number(sel.value) : usable[0].i);
+            });
+            overlay.querySelector('#inv-pkg-cancel')?.addEventListener('click', () => finish(null));
+            overlay.querySelector('#inv-pkg-x')?.addEventListener('click', () => finish(null));
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) finish(null);
+            });
+            overlay.classList.add('active');
+        });
+    },
+
+    fromQuotation(q, packageIndex = 0) {
         this.install();
         this.startNew();
-        this.applyQuotation(q, { keepId: false });
+        this.applyQuotation(q, { keepId: false, packageIndex });
         this.render();
         const page = document.getElementById('page-invoices');
         if (page) {
@@ -698,6 +846,7 @@ export const Invoices = {
         this.install();
         this.set('inv-editing-id', inv.id);
         this.set('inv-quotation-id', inv.quotationId || '');
+        this.set('inv-package-index', inv.packageIndex != null && inv.packageIndex !== '' ? String(inv.packageIndex) : '');
         this.set('inv-number', inv.number || '');
         this.set('inv-client-name', inv.clientName || '');
         this.set('invoice-client-name', inv.clientName || '');

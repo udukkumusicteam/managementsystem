@@ -531,7 +531,10 @@ export const Quotations = {
         const q = quote || this.lastQuotation;
         if (!q) return;
         const { Invoices } = await import('./invoices.js');
-        Invoices.fromQuotation(q);
+        Invoices.install();
+        const idx = await Invoices.pickPackage(q);
+        if (idx == null) return;
+        Invoices.fromQuotation(q, idx);
         const { Dashboard } = await import('./dashboard.js');
         Dashboard.navigateTo('invoices');
     },
